@@ -2,11 +2,20 @@ import os
 import pdfplumber
 import pandas as pd 
 import re 
+from datetime import datetime
 
 pasta_pdfs = "data/notas_fiscais/"
 arquivo_excel = "data/amostra.xlsx"
 
 df_excel = pd.read_excel(arquivo_excel)
+
+def extrair_data(texto):
+    data_match = re.search(r'(?i)(data\s+de\s+emiss[aã]o|emiss[aã]o|data\s+da\s+emiss[aã]o)[:\s]*([0-3]?\d/[0-1]?\d/\d{4})', texto)
+    if data_match:
+        data_extraida = data_match.group(2)
+        print(f"Data extraída: {data_extraida}")
+        return data_extraida
+    return None
 
 def extrair_valor(texto):
     valor_match = re.search(r'(?i)valor\s+total.*?([\d\.]+\,[\d]{2})', texto)
@@ -32,15 +41,14 @@ def extrair_dados_pdf(caminho_pdf):
       
         cnpj = re.search(r'\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}', texto)
         valor_extraido_nf = extrair_valor(texto)
-        data_emissao =  re.search(r'(?i)(data\s+de\s+emiss[aã]o|emiss[aã]o|data\s+da\s+emiss[aã]o)[:\s]*([0-3]?\d/[0-1]?\d/\d{4})',texto)
+        data_nf_nf =  extrair_data(texto)
 
         return {
-            'arquivo': os.path.basename(caminho_pdf),
-            'cnpj': cnpj.group() if cnpj else None,
-            'valor_nf': valor_extraido_nf,
-            'data_emissao': data_emissao.group(2) if data_emissao else None
+          'arquivo': os.path.basename(caminho_pdf),
+          'cnpj': cnpj.group() if cnpj else None,
+          'valor_nf': valor_extraido_nf,
+          'data_nf': data_nf_nf
         }
-
 resultados = []
 
 for arquivo in os.listdir(pasta_pdfs):
@@ -58,9 +66,21 @@ for arquivo in os.listdir(pasta_pdfs):
     valor_aproximado = any(
         abs(valor_pdf - x) < 0.01 for x in df_excel['VALOR NOTA FISCAL'].dropna()
     ) if valor_pdf is not None else False
+    
 
     cnpj_existe = dados['cnpj'] in df_excel['CPF/CNPJ Emitente'].astype(str).values if dados['cnpj'] else False
-    data_existe = dados['data_emissao'] in df_excel['DATA EMISSÃO'].astype(str).values if dados['data_emissao'] else False
+    data_pdf = None
+    if dados['data_nf']:
+        try:
+            data_pdf = datetime.strptime(dados['data_nf'], '%d/%m/%Y').date()
+        except ValueError:
+            print(f"Data inválida no PDF: {dados['data_nf']}")
+
+    if not pd.api.types.is_datetime64_any_dtype(df_excel['DATA EMISSÃO']):
+        df_excel['DATA EMISSÃO'] = pd.to_datetime(df_excel['DATA EMISSÃO'], dayfirst=True).dt.date
+
+    data_existe = any(data_pdf == data for data in df_excel['DATA EMISSÃO'] if pd.notnull(data)) if data_pdf else False
+
 
     dados['cnpj_no_excel'] = cnpj_existe
     dados['valor_no_excel'] = valor_exato
