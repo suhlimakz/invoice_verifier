@@ -11,31 +11,24 @@ df_excel = pd.read_excel(arquivo_excel)
 
 
 def extrair_data(texto):
-    # Defina uma lista de palavras-chave relacionadas à data
     palavras_chave = ['data de emissão', 'emissão', 'data da emissão']
 
-    # Converter o texto para minúsculas para facilitar a busca
     texto_lower = texto.lower()
 
-    # Procurar pelas palavras-chave
     for chave in palavras_chave:
         pos = texto_lower.find(chave)
         
-        if pos != -1:  # Se a palavra-chave foi encontrada
-            # Pega a parte do texto que segue a palavra-chave
+        if pos != -1: 
             substring = texto[pos + len(chave):]
             
-            # Tenta extrair uma data que esteja no formato dd/mm/yyyy
             for palavra in substring.split():
                 try:
-                    # Garantir que a palavra seja tratada como string antes de tentar a conversão
                     data_extraida = datetime.strptime(str(palavra), '%d/%m/%Y').date()
                     print(f"Data extraída: {data_extraida}")
                     data_brasileira = data_extraida.strftime('%d/%m/%Y')
                     return data_brasileira
                 except ValueError:
-                    continue  # Se não for uma data, continue procurando
-
+                    continue 
     return None
 
 def extrair_valor(texto):
