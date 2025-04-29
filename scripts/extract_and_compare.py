@@ -4,24 +4,24 @@ import pandas as pd
 import re 
 
 pasta_pdfs = "data/notas_fiscais/"
-arquivo_excel = "amostra.xlsx"
+arquivo_excel = "data/amostra.xlsx"
 
 df_excel = pd.read_excel(arquivo_excel)
 
 def extrair_dados_pdf(caminho_pdf):
-  with pdfplumber.open(caminho_pdf) as pdf:
-    texto = ''
-    for pagina in pdf.pages:
-      texto += pagina.extract_text()
-      
-      cnpj = re.search(r'\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}',texto)
-      valor = re.search(r'Valor\s+Total[^\d]*([\d\.,]+)',texto)
-      
-      return {
-        'arquivo': os.path.basename(caminho_pdf),
-        'cnpj': cnpj.group() if cnpj else None,
-        'valor': valor.group(1).replace('.','').replace(',','.') if valor else None
-      }
+    with pdfplumber.open(caminho_pdf) as pdf:
+        texto = ''
+        for pagina in pdf.pages:
+            texto += pagina.extract_text()
+
+        cnpj = re.search(r'\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}', texto)
+        valor = re.search(r'(?i)valor\s+total.*?([\d\.]+\,[\d]{2})', texto)
+
+        return {
+            'arquivo': os.path.basename(caminho_pdf),
+            'cnpj': cnpj.group() if cnpj else None,
+            'valor': float(valor.group(1).replace('.', '').replace(',', '.')) if valor else None
+        }
 
 resultados = []
 
