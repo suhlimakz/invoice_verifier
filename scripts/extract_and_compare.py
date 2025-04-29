@@ -3,7 +3,7 @@ import pdfplumber
 import pandas as pd 
 import re 
 
-pasta_pdfs = "notas/"
+pasta_pdfs = "data/notas_fiscais/"
 arquivo_excel = "amostra.xlsx"
 
 df_excel = pd.read_excel(arquivo_excel)
@@ -38,4 +38,4 @@ for arquivo in os.listdir(pasta_pdfs):
 df_resultados = pd.DataFrame(resultados)
 print(df_resultados)
 
-df_resultados.to_excel('relatorio_comparacao.xlsx',index=False)
+df_resultados.to_excel('output/relatorio_comparacao.xlsx',index=False)
