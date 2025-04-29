@@ -30,6 +30,14 @@ def extrair_valor(texto):
             print("Erro ao converter o valor para float")
             return None
     return None
+  
+def extrair_cnpj(texto):
+    match = re.search(r'\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}', texto)
+    if match:
+        cnpj = match.group()
+        print(f"CNPJ extraído: {cnpj}")
+        return cnpj
+    return None
 
 def extrair_dados_pdf(caminho_pdf):
     with pdfplumber.open(caminho_pdf) as pdf:
@@ -39,7 +47,7 @@ def extrair_dados_pdf(caminho_pdf):
 
         texto = re.sub(r'\s+', ' ', texto)
       
-        cnpj = re.search(r'\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}', texto)
+        cnpj = extrair_cnpj(texto)
         valor_extraido_nf = extrair_valor(texto)
         data_nf_nf =  extrair_data(texto)
 
