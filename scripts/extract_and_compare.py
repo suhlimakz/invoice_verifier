@@ -9,12 +9,33 @@ arquivo_excel = "data/amostra.xlsx"
 
 df_excel = pd.read_excel(arquivo_excel)
 
+
 def extrair_data(texto):
-    data_match = re.search(r'(?i)(data\s+de\s+emiss[aã]o|emiss[aã]o|data\s+da\s+emiss[aã]o)[:\s]*([0-3]?\d/[0-1]?\d/\d{4})', texto)
-    if data_match:
-        data_extraida = data_match.group(2)
-        print(f"Data extraída: {data_extraida}")
-        return data_extraida
+    # Defina uma lista de palavras-chave relacionadas à data
+    palavras_chave = ['data de emissão', 'emissão', 'data da emissão']
+
+    # Converter o texto para minúsculas para facilitar a busca
+    texto_lower = texto.lower()
+
+    # Procurar pelas palavras-chave
+    for chave in palavras_chave:
+        pos = texto_lower.find(chave)
+        
+        if pos != -1:  # Se a palavra-chave foi encontrada
+            # Pega a parte do texto que segue a palavra-chave
+            substring = texto[pos + len(chave):]
+            
+            # Tenta extrair uma data que esteja no formato dd/mm/yyyy
+            for palavra in substring.split():
+                try:
+                    # Garantir que a palavra seja tratada como string antes de tentar a conversão
+                    data_extraida = datetime.strptime(str(palavra), '%d/%m/%Y').date()
+                    print(f"Data extraída: {data_extraida}")
+                    data_brasileira = data_extraida.strftime('%d/%m/%Y')
+                    return data_brasileira
+                except ValueError:
+                    continue  # Se não for uma data, continue procurando
+
     return None
 
 def extrair_valor(texto):
@@ -47,15 +68,15 @@ def extrair_dados_pdf(caminho_pdf):
 
         texto = re.sub(r'\s+', ' ', texto)
       
-        cnpj = extrair_cnpj(texto)
+        cnpj_extraido_nf = extrair_cnpj(texto)
         valor_extraido_nf = extrair_valor(texto)
-        data_nf_nf =  extrair_data(texto)
+        data_extraida_nf=  extrair_data(texto)
 
         return {
           'arquivo': os.path.basename(caminho_pdf),
-          'cnpj': cnpj.group() if cnpj else None,
+          'cnpj': cnpj_extraido_nf,
           'valor_nf': valor_extraido_nf,
-          'data_nf': data_nf_nf
+          'data_nf': data_extraida_nf
         }
 resultados = []
 
