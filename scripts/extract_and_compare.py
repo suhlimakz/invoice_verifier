@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 
 pasta_pdfs = "data/notas_fiscais/"
-arquivo_excel = "data/amostra.xlsx"
+arquivo_excel = "data/excel/amostra.xlsx"
 
 df_excel = pd.read_excel(arquivo_excel)
 
@@ -46,12 +46,33 @@ def extrair_valor(texto):
     return None
   
 def extrair_cnpj(texto):
-    match = re.search(r'\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}', texto)
-    if match:
-        cnpj = match.group()
-        print(f"CNPJ extraído: {cnpj}")
-        return cnpj
-    return None
+  match = re.search(r'\b\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}\b', texto)
+  if match:
+    cnpj = match.group()
+    print(f"CNPJ extraído: {cnpj}")
+    return cnpj
+  return None
+
+def extrair_numero_serie(texto):
+  numero_nf = None
+  serie_nf = None
+
+  # Normaliza o texto
+  texto = ' '.join(texto.split())
+
+  # Pega o número no formato "Nº 000.080.963"
+  match_numero = re.search(r'(?i)(n[ºo]\s*)(\d{3}\.\d{3}\.\d{3})', texto)
+  if match_numero:
+    numero_nf = match_numero.group(2).replace('.', '')
+    print(f"Número da nota: {numero_nf}")
+
+  # Pega a série no formato "SÉRIE 000"
+  match_serie = re.search(r'(?i)s[ée]rie\s+(\d{1,4})', texto)
+  if match_serie:
+    serie_nf = match_serie.group(1)
+    print(f"Série da nota: {serie_nf}")
+
+  return numero_nf, serie_nf
 
 def extrair_dados_pdf(caminho_pdf):
     with pdfplumber.open(caminho_pdf) as pdf:
@@ -61,12 +82,15 @@ def extrair_dados_pdf(caminho_pdf):
 
         texto = re.sub(r'\s+', ' ', texto)
       
+        numero_estraido_nf, serie_estraida_nf = extrair_numero_serie(texto)
         cnpj_extraido_nf = extrair_cnpj(texto)
         valor_extraido_nf = extrair_valor(texto)
         data_extraida_nf=  extrair_data(texto)
 
         return {
           'arquivo': os.path.basename(caminho_pdf),
+          'numero_nf': numero_estraido_nf,
+          'serie_nf': serie_estraida_nf,
           'cnpj': cnpj_extraido_nf,
           'valor_nf': valor_extraido_nf,
           'data_nf': data_extraida_nf
@@ -102,9 +126,13 @@ for arquivo in os.listdir(pasta_pdfs):
         df_excel['DATA EMISSÃO'] = pd.to_datetime(df_excel['DATA EMISSÃO'], dayfirst=True).dt.date
 
     data_existe = any(data_pdf == data for data in df_excel['DATA EMISSÃO'] if pd.notnull(data)) if data_pdf else False
-
+      
+    numero_existe = dados['numero_nf'] in df_excel['NÚMERO'].astype(str).values if dados.get('numero_nf') else False
+    serie_existe = dados['serie_nf'] in df_excel['SÉRIE'].astype(str).values if dados.get('serie_nf') else False
 
     dados['cnpj_no_excel'] = cnpj_existe
+    dados['numero_nf_no_excel'] = numero_existe
+    dados['serie_nf_no_excel'] = serie_existe
     dados['valor_no_excel'] = valor_exato
     dados['valor_diferenca_ate_0_01'] = not valor_exato and valor_aproximado
     dados['data_no_excel'] = data_existe
