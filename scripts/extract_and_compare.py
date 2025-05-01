@@ -57,16 +57,13 @@ def extrair_numero_serie(texto):
   numero_nf = None
   serie_nf = None
 
-  # Normaliza o texto
   texto = ' '.join(texto.split())
 
-  # Pega o número no formato "Nº 000.080.963"
   match_numero = re.search(r'(?i)(n[ºo]\s*)(\d{3}\.\d{3}\.\d{3})', texto)
   if match_numero:
     numero_nf = match_numero.group(2).replace('.', '')
     print(f"Número da nota: {numero_nf}")
 
-  # Pega a série no formato "SÉRIE 000"
   match_serie = re.search(r'(?i)s[ée]rie\s+(\d{1,4})', texto)
   if match_serie:
     serie_nf = match_serie.group(1)
@@ -74,27 +71,54 @@ def extrair_numero_serie(texto):
 
   return numero_nf, serie_nf
 
-def extrair_dados_pdf(caminho_pdf):
-    with pdfplumber.open(caminho_pdf) as pdf:
-        texto = ''
-        for pagina in pdf.pages:
-            texto += pagina.extract_text()
+def extrair_produtos(texto):
+    produtos = []
 
-        texto = re.sub(r'\s+', ' ', texto)
-      
-        numero_estraido_nf, serie_estraida_nf = extrair_numero_serie(texto)
-        cnpj_extraido_nf = extrair_cnpj(texto)
-        valor_extraido_nf = extrair_valor(texto)
-        data_extraida_nf=  extrair_data(texto)
+    texto = ' '.join(texto.split())
 
-        return {
-          'arquivo': os.path.basename(caminho_pdf),
-          'numero_nf': numero_estraido_nf,
-          'serie_nf': serie_estraida_nf,
-          'cnpj': cnpj_extraido_nf,
-          'valor_nf': valor_extraido_nf,
-          'data_nf': data_extraida_nf
+    match_descricao = re.findall(r'([A-Za-z0-9\s]+?)(?=\s*CFOP)', texto)
+    print(f"Produto/descriçao nota: {match_descricao}")
+    
+    match_cfop = re.findall(r'CFOP\s*(\d{4})', texto)
+    print(f"CFOP nota: {match_cfop}")
+    
+    match_valor = re.findall(r'R\$\s*([\d\.,]+)', texto)
+    print(f"VALOR nota: {match_valor}")
+
+    for i in range(min(len(match_descricao), len(match_cfop), len(match_valor))):
+        produto = {
+            'descricao': match_descricao[i].strip(),
+            'cfop': match_cfop[i].strip(),
+            'valor_total': float(match_valor[i].replace('.', '').replace(',', '.'))
         }
+        produtos.append(produto)
+    
+    return produtos
+
+def extrair_dados_pdf(caminho_pdf):
+  with pdfplumber.open(caminho_pdf) as pdf:
+    texto = ''
+    for pagina in pdf.pages:
+        texto += pagina.extract_text()
+        
+    texto = re.sub(r'\s+', ' ', texto)
+  
+    numero_estraido_nf, serie_estraida_nf = extrair_numero_serie(texto)
+    cnpj_extraido_nf = extrair_cnpj(texto)
+    valor_extraido_nf = extrair_valor(texto)
+    data_extraida_nf=  extrair_data(texto)
+    produtos_extraidos_nf = extrair_produtos(texto)
+    
+    return {
+        'arquivo': os.path.basename(caminho_pdf),
+        'numero_nf': numero_estraido_nf,
+        'serie_nf': serie_estraida_nf,
+        'cnpj': cnpj_extraido_nf,
+        'valor_nf': valor_extraido_nf,
+        'data_nf': data_extraida_nf,
+        'produtos': produtos_extraidos_nf 
+    }
+
 resultados = []
 
 for arquivo in os.listdir(pasta_pdfs):
@@ -110,7 +134,7 @@ for arquivo in os.listdir(pasta_pdfs):
 
     valor_exato = valor_pdf in df_excel['VALOR NOTA FISCAL'].values if valor_pdf is not None else False
     valor_aproximado = any(
-        abs(valor_pdf - x) < 0.01 for x in df_excel['VALOR NOTA FISCAL'].dropna()
+      abs(valor_pdf - x) < 0.01 for x in df_excel['VALOR NOTA FISCAL'].dropna()
     ) if valor_pdf is not None else False
     
 
@@ -129,17 +153,33 @@ for arquivo in os.listdir(pasta_pdfs):
       
     numero_existe = dados['numero_nf'] in df_excel['NÚMERO'].astype(str).values if dados.get('numero_nf') else False
     serie_existe = dados['serie_nf'] in df_excel['SÉRIE'].astype(str).values if dados.get('serie_nf') else False
-
+    
+    produtos_info  = []
+    
     dados['cnpj_no_excel'] = cnpj_existe
     dados['numero_nf_no_excel'] = numero_existe
     dados['serie_nf_no_excel'] = serie_existe
     dados['valor_no_excel'] = valor_exato
     dados['valor_diferenca_ate_0_01'] = not valor_exato and valor_aproximado
     dados['data_no_excel'] = data_existe
+    dados['produtos'] = produtos_info
+    
+    if produtos_info:
+      primeiro_produto = produtos_info[0]
+      dados['descricao_produto'] = primeiro_produto.get('descricao')
+      dados['cfop_produto'] = primeiro_produto.get('cfop')
+      dados['valor_produto'] = primeiro_produto.get('valor_total')
+    else:
+      dados['descricao_produto'] = None
+      dados['cfop_produto'] = None
+      dados['valor_produto'] = None
+    
     
     resultados.append(dados)
   
 df_resultados = pd.DataFrame(resultados)
 print(df_resultados)
 
-df_resultados.to_excel('output/relatorio_comparacao.xlsx',index=False)
+#df_resultados.drop(columns=['produtos'], inplace=True)
+
+#df_resultados.to_excel('output/relatorio_comparacao.xlsx',index=False)
