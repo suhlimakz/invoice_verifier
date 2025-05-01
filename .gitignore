@@ -1,4 +1,4 @@
 env/
 /data/notas_fiscais/*.pdf
-/data/notas_fiscais/*.xlsx
+/data/excel/*.xlsx
 /output/*.xlsx
