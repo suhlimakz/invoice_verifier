@@ -71,29 +71,25 @@ def extrair_numero_serie(texto):
 
   return numero_nf, serie_nf
 
-def extrair_produtos(texto):
-    produtos = []
+def extrair_descricao_produtos_tabela(caminho_pdf):
+    with pdfplumber.open(caminho_pdf) as pdf:
+        tabelas = []
+        for pagina in pdf.pages:
+            tabelas.extend(pagina.extract_tables())
 
-    texto = ' '.join(texto.split())
-
-    match_descricao = re.findall(r'([A-Za-z0-9\s]+?)(?=\s*CFOP)', texto)
-    print(f"Produto/descriçao nota: {match_descricao}")
-    
-    match_cfop = re.findall(r'CFOP\s*(\d{4})', texto)
-    print(f"CFOP nota: {match_cfop}")
-    
-    match_valor = re.findall(r'R\$\s*([\d\.,]+)', texto)
-    print(f"VALOR nota: {match_valor}")
-
-    for i in range(min(len(match_descricao), len(match_cfop), len(match_valor))):
-        produto = {
-            'descricao': match_descricao[i].strip(),
-            'cfop': match_cfop[i].strip(),
-            'valor_total': float(match_valor[i].replace('.', '').replace(',', '.'))
-        }
-        produtos.append(produto)
-    
-    return produtos
+    for tabela in tabelas:
+        header = tabela[0]
+        if any('descrição' in str(c).lower() for c in header):
+            indice_desc = [i for i, c in enumerate(header) if 'descrição' in str(c).lower()][0]
+            descricoes = []
+            for linha in tabela[1:]:
+                valor = linha[indice_desc]
+                if valor:
+                    descricao_texto = valor.replace('\n', ' | ').replace('\r', ' | ').strip()
+                    print(f"Descrição extraída: {descricao_texto}")
+                    descricoes.append(descricao_texto)
+            return descricoes
+    return []
 
 def extrair_dados_pdf(caminho_pdf):
   with pdfplumber.open(caminho_pdf) as pdf:
@@ -107,7 +103,7 @@ def extrair_dados_pdf(caminho_pdf):
     cnpj_extraido_nf = extrair_cnpj(texto)
     valor_extraido_nf = extrair_valor(texto)
     data_extraida_nf=  extrair_data(texto)
-    produtos_extraidos_nf = extrair_produtos(texto)
+    descricao_produto_extraido_nf = extrair_descricao_produtos_tabela(caminho_pdf)
     
     return {
         'arquivo': os.path.basename(caminho_pdf),
@@ -116,7 +112,7 @@ def extrair_dados_pdf(caminho_pdf):
         'cnpj': cnpj_extraido_nf,
         'valor_nf': valor_extraido_nf,
         'data_nf': data_extraida_nf,
-        'produtos': produtos_extraidos_nf 
+        'descricao_produto_nf': descricao_produto_extraido_nf
     }
 
 resultados = []
@@ -127,7 +123,6 @@ for arquivo in os.listdir(pasta_pdfs):
     dados = extrair_dados_pdf(caminho_pdf)
     
     df_excel['VALOR NOTA FISCAL'] = df_excel['VALOR NOTA FISCAL'].apply(lambda x: float(str(x).replace(',', '.').replace(' ', '')) if isinstance(x, str) else x)
-    
     df_excel['VALOR NOTA FISCAL'] = df_excel['VALOR NOTA FISCAL'].apply(lambda x: round(x, 2))
      
     valor_pdf = dados['valor_nf']
@@ -137,8 +132,8 @@ for arquivo in os.listdir(pasta_pdfs):
       abs(valor_pdf - x) < 0.01 for x in df_excel['VALOR NOTA FISCAL'].dropna()
     ) if valor_pdf is not None else False
     
-
     cnpj_existe = dados['cnpj'] in df_excel['CPF/CNPJ Emitente'].astype(str).values if dados['cnpj'] else False
+    
     data_pdf = None
     if dados['data_nf']:
         try:
@@ -149,31 +144,21 @@ for arquivo in os.listdir(pasta_pdfs):
     if not pd.api.types.is_datetime64_any_dtype(df_excel['DATA EMISSÃO']):
         df_excel['DATA EMISSÃO'] = pd.to_datetime(df_excel['DATA EMISSÃO'], dayfirst=True).dt.date
 
-    data_existe = any(data_pdf == data for data in df_excel['DATA EMISSÃO'] if pd.notnull(data)) if data_pdf else False
-      
+    data_existe = any(data == pd.Timestamp(data_pdf) for data in df_excel['DATA EMISSÃO'] if pd.notnull(data)) if data_pdf else False
+
     numero_existe = dados['numero_nf'] in df_excel['NÚMERO'].astype(str).values if dados.get('numero_nf') else False
     serie_existe = dados['serie_nf'] in df_excel['SÉRIE'].astype(str).values if dados.get('serie_nf') else False
     
-    produtos_info  = []
-    
+    descricao_pdf = str(dados.get('descricao_produto_nf', '')).strip().lower()
+    descricao_existe = descricao_pdf in df_excel['DESCRIÇÃO DO PRODUTO / SERVIÇO'].astype(str).str.strip().str.lower().values
+
     dados['cnpj_no_excel'] = cnpj_existe
     dados['numero_nf_no_excel'] = numero_existe
     dados['serie_nf_no_excel'] = serie_existe
     dados['valor_no_excel'] = valor_exato
     dados['valor_diferenca_ate_0_01'] = not valor_exato and valor_aproximado
     dados['data_no_excel'] = data_existe
-    dados['produtos'] = produtos_info
-    
-    if produtos_info:
-      primeiro_produto = produtos_info[0]
-      dados['descricao_produto'] = primeiro_produto.get('descricao')
-      dados['cfop_produto'] = primeiro_produto.get('cfop')
-      dados['valor_produto'] = primeiro_produto.get('valor_total')
-    else:
-      dados['descricao_produto'] = None
-      dados['cfop_produto'] = None
-      dados['valor_produto'] = None
-    
+    dados['descricao_produto_no_excel'] = descricao_existe
     
     resultados.append(dados)
   
