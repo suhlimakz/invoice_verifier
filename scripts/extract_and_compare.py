@@ -90,6 +90,41 @@ def extrair_descricao_produtos_tabela(caminho_pdf):
                     descricoes.append(descricao_texto)
             return descricoes
     return []
+  
+def extrair_cfop_tabela(caminho_pdf):
+    cfops_encontrados = []
+
+    with pdfplumber.open(caminho_pdf) as pdf:
+        for pagina in pdf.pages:
+            tabelas = pagina.extract_tables()
+            for tabela in tabelas:
+                for linha in tabela:
+                    for i, celula in enumerate(linha):
+                        if celula:
+                            if re.search(r'\bCFOP\b', celula, re.IGNORECASE):
+                                # Encontrou o título da coluna
+                                indice_cfop = i
+                                break
+                    else:
+                        continue
+                    break
+                else:
+                    continue
+
+                # Se encontrou o índice, coleta os CFOPs abaixo da linha do cabeçalho
+                for linha in tabela[1:]:  # pulando a primeira linha (cabeçalho)
+                    if indice_cfop < len(linha):
+                        cfop = linha[indice_cfop]
+                        if cfop and re.match(r'^\d{4}$', cfop.strip()):
+                            cfops_encontrados.append(cfop.strip())
+                break  # Já encontrou uma tabela com CFOP, pode sair da página
+
+    if cfops_encontrados:
+        cfop_texto = ' | '.join(cfops_encontrados)
+        print(f"CFOP(s) extraído(s): {cfop_texto}")
+        return cfop_texto
+
+    return None
 
 def extrair_dados_pdf(caminho_pdf):
   with pdfplumber.open(caminho_pdf) as pdf:
@@ -104,6 +139,7 @@ def extrair_dados_pdf(caminho_pdf):
     valor_extraido_nf = extrair_valor(texto)
     data_extraida_nf=  extrair_data(texto)
     descricao_produto_extraido_nf = extrair_descricao_produtos_tabela(caminho_pdf)
+    cfop_extraido_nf = extrair_cfop_tabela(caminho_pdf)
     
     return {
         'arquivo': os.path.basename(caminho_pdf),
@@ -112,10 +148,13 @@ def extrair_dados_pdf(caminho_pdf):
         'cnpj': cnpj_extraido_nf,
         'valor_nf': valor_extraido_nf,
         'data_nf': data_extraida_nf,
-        'descricao_produto_nf': descricao_produto_extraido_nf
+        'descricao_produto_nf': descricao_produto_extraido_nf,
+        'cfop_nf': cfop_extraido_nf
     }
 
 resultados = []
+
+
 
 for arquivo in os.listdir(pasta_pdfs):
   if arquivo.lower().endswith('.pdf'):
