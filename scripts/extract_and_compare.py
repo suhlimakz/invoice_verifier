@@ -102,7 +102,6 @@ def extrair_cfop_tabela(caminho_pdf):
                     for i, celula in enumerate(linha):
                         if celula:
                             if re.search(r'\bCFOP\b', celula, re.IGNORECASE):
-                                # Encontrou o título da coluna
                                 indice_cfop = i
                                 break
                     else:
@@ -111,20 +110,54 @@ def extrair_cfop_tabela(caminho_pdf):
                 else:
                     continue
 
-                # Se encontrou o índice, coleta os CFOPs abaixo da linha do cabeçalho
-                for linha in tabela[1:]:  # pulando a primeira linha (cabeçalho)
+                for linha in tabela[1:]:  
                     if indice_cfop < len(linha):
                         cfop = linha[indice_cfop]
                         if cfop and re.match(r'^\d{4}$', cfop.strip()):
                             cfops_encontrados.append(cfop.strip())
-                break  # Já encontrou uma tabela com CFOP, pode sair da página
-
+                break 
     if cfops_encontrados:
         cfop_texto = ' | '.join(cfops_encontrados)
         print(f"CFOP(s) extraído(s): {cfop_texto}")
         return cfop_texto
 
     return None
+  
+def extrair_unidade_produtos_tabela(caminho_pdf):
+    unidades = []
+
+    with pdfplumber.open(caminho_pdf) as pdf:
+        for pagina in pdf.pages:
+            tabelas = pagina.extract_tables()
+
+            for tabela in tabelas:
+                if not tabela or len(tabela) < 2:
+                    continue 
+
+                header = [celula.strip().upper() if celula else '' for celula in tabela[0]]
+
+                for idx, titulo in enumerate(header):
+                    if re.search(r'\bUNID\.?\b', titulo):
+                        indice_unid = idx
+                        break
+                else:
+                    continue 
+
+                for linha in tabela[1:]:
+                    if len(linha) > indice_unid:
+                        dado = linha[indice_unid]
+                        if dado:
+                            partes = [parte.strip() for parte in re.split(r'[\n\r]+', str(dado)) if parte.strip()]
+                            unidade = ' | '.join(partes)
+                            unidades.append(unidade)
+                            print(f"Unidade extraída: {unidade}")
+
+    if unidades:
+        return unidades
+    else:
+        print("Nenhuma unidade encontrada.")
+        return None
+
 
 def extrair_dados_pdf(caminho_pdf):
   with pdfplumber.open(caminho_pdf) as pdf:
@@ -140,6 +173,7 @@ def extrair_dados_pdf(caminho_pdf):
     data_extraida_nf=  extrair_data(texto)
     descricao_produto_extraido_nf = extrair_descricao_produtos_tabela(caminho_pdf)
     cfop_extraido_nf = extrair_cfop_tabela(caminho_pdf)
+    unidade_extraida_nf = extrair_unidade_produtos_tabela(caminho_pdf)
     
     return {
         'arquivo': os.path.basename(caminho_pdf),
@@ -149,7 +183,8 @@ def extrair_dados_pdf(caminho_pdf):
         'valor_nf': valor_extraido_nf,
         'data_nf': data_extraida_nf,
         'descricao_produto_nf': descricao_produto_extraido_nf,
-        'cfop_nf': cfop_extraido_nf
+        'cfop_nf': cfop_extraido_nf,
+        'unidade_nf': unidade_extraida_nf
     }
 
 resultados = []
