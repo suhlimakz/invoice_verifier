@@ -158,6 +158,30 @@ def extrair_unidade_produtos_tabela(caminho_pdf):
         print("Nenhuma unidade encontrada.")
         return None
 
+def extrair_quantidade_produtos_tabela(caminho_pdf):
+  with pdfplumber.open(caminho_pdf) as pdf:
+        quantidades_extraidas = []
+        for pagina in pdf.pages:
+            tabelas = pagina.extract_tables()
+            for tabela in tabelas:
+                if not tabela:
+                    continue
+                header = tabela[0]
+                for idx, coluna in enumerate(header):
+                    if coluna:
+                        coluna_formatada = re.sub(r'\s+', '', coluna.upper())
+                        if 'QUANT' in coluna_formatada:
+                            for linha in tabela[1:]:
+                                if idx < len(linha):
+                                    valor = linha[idx]
+                                    if valor:
+                                        valor_formatado = ' | '.join(
+                                            [v.strip() for v in valor.split('\n') if v.strip()]
+                                        )
+                                        print(f"Quantidade extraída: {valor_formatado}")
+                                        quantidades_extraidas.append(valor_formatado)
+                            break
+        return quantidades_extraidas if quantidades_extraidas else None
 
 def extrair_dados_pdf(caminho_pdf):
   with pdfplumber.open(caminho_pdf) as pdf:
@@ -174,6 +198,7 @@ def extrair_dados_pdf(caminho_pdf):
     descricao_produto_extraido_nf = extrair_descricao_produtos_tabela(caminho_pdf)
     cfop_extraido_nf = extrair_cfop_tabela(caminho_pdf)
     unidade_extraida_nf = extrair_unidade_produtos_tabela(caminho_pdf)
+    quantidade_produto_extraido_nf = extrair_quantidade_produtos_tabela(caminho_pdf)
     
     return {
         'arquivo': os.path.basename(caminho_pdf),
@@ -184,7 +209,9 @@ def extrair_dados_pdf(caminho_pdf):
         'data_nf': data_extraida_nf,
         'descricao_produto_nf': descricao_produto_extraido_nf,
         'cfop_nf': cfop_extraido_nf,
-        'unidade_nf': unidade_extraida_nf
+        'unidade_nf': unidade_extraida_nf,
+        'quantidade_nf': quantidade_produto_extraido_nf
+        
     }
 
 resultados = []
