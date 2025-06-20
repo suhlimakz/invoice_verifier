@@ -14,7 +14,8 @@ from  layout_siagri_erp_extractor import (
                                           extrair_data_emissao,
                                           extrair_municipio_destinatario,
                                           extrair_uf_destinatario,
-                                          extrair_valor_total_produtos
+                                          extrair_valor_total_produtos,
+                                          extrair_valor_total_descontos
 )
 
 def main():
@@ -60,7 +61,8 @@ def main():
           'data_emissao_nfe': extrair_data_emissao(linha_dados),
           'municipio_destinatario': extrair_municipio_destinatario(texto),
           'uf_destinatario': extrair_uf_destinatario(texto),
-          'valor_total_produtos': extrair_valor_total_produtos(texto)
+          'valor_total_produtos': extrair_valor_total_produtos(texto),
+          'valor_total_descontos_produtos': extrair_valor_total_descontos(texto)
         }
         
         resultados.append(dados)
@@ -78,6 +80,7 @@ def main():
         print(f"✔️ Municipio do destinatário: {dados['municipio_destinatario']}")
         print(f"✔️ UF do destinatário: {dados['uf_destinatario']}")
         print(f"✔️ Valor total dos produtos: {dados['valor_total_produtos']}")
+        print(f"✔️ Valor total de descontos dos produtos: {dados['valor_total_descontos_produtos']}")
         
 
     except Exception as e:
