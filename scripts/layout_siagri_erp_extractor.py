@@ -162,3 +162,11 @@ def extrair_cnpj_cpf_destinatario(linha_dados):
 			if parte.count('.') == 2 and '/' in parte and '-' in parte:
 				return parte
 	return None
+
+def extrair_data_emissao(linha_dados):
+	if linha_dados:
+		partes = linha_dados.split()
+		for parte in partes:
+			if '/' in parte and parte.count('/') == 2:
+				return parte
+	return None
