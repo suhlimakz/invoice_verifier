@@ -1,6 +1,6 @@
 import os
 import pdfplumber
-from  layout_siagri_erp_extractor import extrair_chave_acesso, extrair_tipo_movimentacao ,extrair_cnpj_da_chave
+from  layout_siagri_erp_extractor import extrair_chave_acesso, extrair_tipo_movimentacao ,extrair_cnpj_da_chave, extrair_serie
 
 def main():
   base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -34,7 +34,8 @@ def main():
           'arquivo': arquivo,
           'chave_acesso': chave,
           'tipo_movimentacao':  extrair_tipo_movimentacao(chave),
-          'cnpj_emitente': extrair_cnpj_da_chave(chave)
+          'cnpj_emitente': extrair_cnpj_da_chave(chave),
+          'serie_nf': extrair_serie(chave)
         }
         
         resultados.append(dados)
@@ -42,6 +43,7 @@ def main():
         print(f"✔️ Chave de acesso: {dados['chave_acesso']}")
         print(f"✔️ Tipo de movimentação: {dados['tipo_movimentacao']}")
         print(f"✔️ CNPJ emitente: {dados['cnpj_emitente']}")
+        print(f"✔️ Série NF-e: {dados['serie_nf']}")
             
     except Exception as e:
       print(f"❌ Erro ao processar {arquivo}: {e}")
