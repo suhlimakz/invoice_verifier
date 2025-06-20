@@ -256,3 +256,24 @@ def extrair_valor_total_descontos(texto):
 
 	print("❌ Cabeçalho com 'Desconto' e 'Valor total da Nota' não encontrado.")
 	return None
+
+def extrair_valor_total_nota(texto):
+	linhas = texto.splitlines()
+
+	for i, linha in enumerate(linhas):
+		linha_lower = linha.lower()
+		if 'valor total da nota' in linha_lower:
+			if i + 1 < len(linhas):
+				linha_dados = linhas[i + 1].strip()
+				valores = linha_dados.split()
+				if valores:
+					return valores[-1] 
+				else:
+					print("❌ Não encontrou valores na linha de dados.")
+					return None
+			else:
+				print("❌ Linha de dados não encontrada após o cabeçalho.")
+				return None
+
+	print("❌ Cabeçalho com 'Valor total da Nota' não encontrado.")
+	return None
