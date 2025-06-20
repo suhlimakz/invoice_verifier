@@ -98,3 +98,29 @@ def extrair_numero_nf(chave):
 	else:
 		print(f"Aviso: chave inválida para extrair NÚMERO NF-e → {chave}")
 		return None
+
+def extrair_natureza_operacao(texto):
+	linhas = texto.splitlines()
+
+	for i, linha in enumerate(linhas):
+		if 'Natureza da Operação' in linha:
+			parts = linha.split(':')
+			if len(parts) > 1 and parts[1].strip():
+				natureza = parts[1].strip()
+			else:
+				natureza = linhas[i + 1].strip() if i + 1 < len(linhas) else ''
+
+			natureza_limpa = ''
+			for palavra in natureza.split():
+				if palavra.isdigit() and len(palavra) >= 8:
+					break
+				if '/' in palavra and palavra.count('/') == 2:
+					break
+				if ':' in palavra and palavra.count(':') == 2:
+					break
+				natureza_limpa += palavra + ' '
+
+			return natureza_limpa.strip()
+
+	print("❌ Campo 'Natureza da Operação' não encontrado no texto.")
+	return None

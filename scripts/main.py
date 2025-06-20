@@ -6,7 +6,8 @@ from  layout_siagri_erp_extractor import (
                                           extrair_tipo_movimentacao,
                                           extrair_cnpj_da_chave,
                                           extrair_serie,
-                                          extrair_numero_nf
+                                          extrair_numero_nf,
+                                          extrair_natureza_operacao
 )
 
 def main():
@@ -44,7 +45,8 @@ def main():
           'uf_emitente': extrair_uf_emitente(chave),
           'cnpj_emitente': extrair_cnpj_da_chave(chave),
           'serie_nf': extrair_serie(chave),
-          'numero_nf': extrair_numero_nf(chave)
+          'numero_nf': extrair_numero_nf(chave),
+          'natureza_operacao': extrair_natureza_operacao(texto)
         }
         
         resultados.append(dados)
@@ -55,6 +57,8 @@ def main():
         print(f"✔️ CNPJ emitente: {dados['cnpj_emitente']}")
         print(f"✔️ Série NF-e: {dados['serie_nf']}")
         print(f"✔️ Número NF-e: {dados['numero_nf']}")
+        print(f"✔️ Natureza da operação: {dados['natureza_operacao']}")
+        
         
     except Exception as e:
       print(f"❌ Erro ao processar {arquivo}: {e}")
