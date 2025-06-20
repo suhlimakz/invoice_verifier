@@ -25,6 +25,14 @@ def extrair_tipo_movimentacao(chave):
     print(f"⚠️ Valor inesperado para tipo de movimentação: {tipo_movimentacao}")
     return None
 
+def extrair_uf_emitente(chave):
+	if chave and len(chave) == 45:
+		uf_emitente= chave[1:3] 
+		return uf_emitente
+	else:
+		print(f"Aviso: chave inválida para extrair UF EMITENTE → {chave}")
+		return None
+  
 def extrair_cnpj_da_chave(chave):
 	if chave and len(chave) == 45:
 		cnpj_puro = chave[7:21] 

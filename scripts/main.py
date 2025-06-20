@@ -2,6 +2,7 @@ import os
 import pdfplumber
 from  layout_siagri_erp_extractor import ( 
                                           extrair_chave_acesso,
+                                          extrair_uf_emitente,
                                           extrair_tipo_movimentacao,
                                           extrair_cnpj_da_chave,
                                           extrair_serie,
@@ -40,16 +41,17 @@ def main():
           'arquivo': arquivo,
           'chave_acesso': chave,
           'tipo_movimentacao':  extrair_tipo_movimentacao(chave),
+          'uf_emitente': extrair_uf_emitente(chave),
           'cnpj_emitente': extrair_cnpj_da_chave(chave),
           'serie_nf': extrair_serie(chave),
           'numero_nf': extrair_numero_nf(chave)
-          
         }
         
         resultados.append(dados)
         
         print(f"✔️ Chave de acesso: {dados['chave_acesso']}")
         print(f"✔️ Tipo de movimentação: {dados['tipo_movimentacao']}")
+        print(f"✔️ UF emitente: {dados['uf_emitente']}")
         print(f"✔️ CNPJ emitente: {dados['cnpj_emitente']}")
         print(f"✔️ Série NF-e: {dados['serie_nf']}")
         print(f"✔️ Número NF-e: {dados['numero_nf']}")
