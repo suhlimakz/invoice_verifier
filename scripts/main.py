@@ -7,7 +7,9 @@ from  layout_siagri_erp_extractor import (
                                           extrair_cnpj_da_chave,
                                           extrair_serie,
                                           extrair_numero_nf,
-                                          extrair_natureza_operacao
+                                          extrair_natureza_operacao,
+                                          extrair_linha_nome_razao_social_cnpj_cpf_data,
+                                          extrair_destinatario
 )
 
 def main():
@@ -38,6 +40,7 @@ def main():
         texto = "\n".join([page.extract_text() for page in pdf.pages if page.extract_text()])
         
         chave = extrair_chave_acesso(texto)
+        linha_dados = extrair_linha_nome_razao_social_cnpj_cpf_data(texto)
         dados = {
           'arquivo': arquivo,
           'chave_acesso': chave,
@@ -46,7 +49,9 @@ def main():
           'cnpj_emitente': extrair_cnpj_da_chave(chave),
           'serie_nf': extrair_serie(chave),
           'numero_nf': extrair_numero_nf(chave),
-          'natureza_operacao': extrair_natureza_operacao(texto)
+          'natureza_operacao': extrair_natureza_operacao(texto),
+          'nome_destinatario': extrair_destinatario(linha_dados)
+          
         }
         
         resultados.append(dados)
@@ -58,6 +63,7 @@ def main():
         print(f"✔️ Série NF-e: {dados['serie_nf']}")
         print(f"✔️ Número NF-e: {dados['numero_nf']}")
         print(f"✔️ Natureza da operação: {dados['natureza_operacao']}")
+        print(f"✔️ Nome do destinatárip: {dados['nome_destinatario']}")
         
         
     except Exception as e:

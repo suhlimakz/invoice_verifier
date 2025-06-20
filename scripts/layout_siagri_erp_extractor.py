@@ -124,3 +124,31 @@ def extrair_natureza_operacao(texto):
 
 	print("❌ Campo 'Natureza da Operação' não encontrado no texto.")
 	return None
+
+def extrair_linha_nome_razao_social_cnpj_cpf_data(texto):
+	linhas = texto.splitlines()
+
+	for i, linha in enumerate(linhas):
+		linha_lower = linha.lower().strip()
+		if 'nome / razão social' in linha_lower:
+			if i + 1 < len(linhas):
+				linha_dados = linhas[i + 1].strip()
+				return linha_dados
+			else:
+				print("⚠️ Não há linha abaixo do campo 'Nome / Razão Social'.")
+				return None
+
+	print("❌ Campo 'Nome / Razão Social' não encontrado no texto.")
+	return None
+
+def extrair_destinatario(linha_dados):
+	if linha_dados:
+		partes = linha_dados.split()
+		nome = []
+		for parte in partes:
+			if '.' in parte or '/' in parte or '-' in parte and len(parte) >= 11:
+				break
+			nome.append(parte)
+		return ' '.join(nome) if nome else None
+
+	return None
