@@ -13,7 +13,8 @@ from  layout_siagri_erp_extractor import (
                                           extrair_cnpj_cpf_destinatario,
                                           extrair_data_emissao,
                                           extrair_municipio_destinatario,
-                                          extrair_uf_destinatario
+                                          extrair_uf_destinatario,
+                                          extrair_valor_total_produtos
 )
 
 def main():
@@ -58,7 +59,8 @@ def main():
           'cnpj_cpf_destinatario': extrair_cnpj_cpf_destinatario(linha_dados),
           'data_emissao_nfe': extrair_data_emissao(linha_dados),
           'municipio_destinatario': extrair_municipio_destinatario(texto),
-          'uf_destinatario': extrair_uf_destinatario(texto)
+          'uf_destinatario': extrair_uf_destinatario(texto),
+          'valor_total_produtos': extrair_valor_total_produtos(texto)
         }
         
         resultados.append(dados)
@@ -75,10 +77,9 @@ def main():
         print(f"✔️ Data de emissão NF-e: {dados['data_emissao_nfe']}")
         print(f"✔️ Municipio do destinatário: {dados['municipio_destinatario']}")
         print(f"✔️ UF do destinatário: {dados['uf_destinatario']}")
+        print(f"✔️ Valor total dos produtos: {dados['valor_total_produtos']}")
         
-        
-        
-        
+
     except Exception as e:
       print(f"❌ Erro ao processar {arquivo}: {e}")
             

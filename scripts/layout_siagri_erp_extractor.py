@@ -214,3 +214,24 @@ def extrair_uf_destinatario(texto):
 
 	print("❌ Cabeçalho com 'Município' e 'UF' não encontrado.")
 	return None
+
+def extrair_valor_total_produtos(texto):
+	linhas = texto.splitlines()
+
+	for i, linha in enumerate(linhas):
+		linha_lower = linha.lower()
+		if 'valor total dos produtos' in linha_lower:
+			if i + 1 < len(linhas):
+				linha_dados = linhas[i + 1].strip()
+				valores = linha_dados.split()
+				if valores:
+					return valores[-1] 
+				else:
+					print("❌ Não encontrou valores na linha de dados.")
+					return None
+			else:
+				print("❌ Linha de dados não encontrada após o cabeçalho.")
+				return None
+
+	print("❌ Cabeçalho com 'Valor total dos produtos' não encontrado.")
+	return None
