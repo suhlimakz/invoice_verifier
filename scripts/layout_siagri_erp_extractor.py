@@ -170,3 +170,47 @@ def extrair_data_emissao(linha_dados):
 			if '/' in parte and parte.count('/') == 2:
 				return parte
 	return None
+
+def extrair_municipio_destinatario(texto):
+	linhas = texto.splitlines()
+
+	for i, linha in enumerate(linhas):
+		linha_lower = linha.lower()
+  # O cabeçalho no PDF a palavra município está escrita errada, 
+  # se não encontrar o dado, verifique se a grafia foi corrigida. 
+		if 'munícipio' in linha_lower and 'uf' in linha_lower:
+			if i + 1 < len(linhas):
+				linha_dados = linhas[i + 1].strip()
+				partes = linha_dados.split()
+				if len(partes) >= 1:
+					return partes[0]
+				else:
+					print("❌ Linha de dados não tem município.")
+					return None
+			else:
+				print("❌ Linha de dados não encontrada após cabeçalho.")
+				return None
+
+	print("❌ Cabeçalho com 'Município' e 'UF' não encontrado.")
+	return None
+
+def extrair_uf_destinatario(texto):
+	linhas = texto.splitlines()
+
+	for i, linha in enumerate(linhas):
+		linha_lower = linha.lower()
+		if 'munícipio' in linha_lower and 'uf' in linha_lower:
+			if i + 1 < len(linhas):
+				linha_dados = linhas[i + 1].strip()
+				partes = linha_dados.split()
+				if len(partes) >= 3:
+					return partes[2]
+				else:
+					print("❌ Linha de dados não tem UF.")
+					return None
+			else:
+				print("❌ Linha de dados não encontrada após cabeçalho.")
+				return None
+
+	print("❌ Cabeçalho com 'Município' e 'UF' não encontrado.")
+	return None

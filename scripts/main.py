@@ -11,7 +11,9 @@ from  layout_siagri_erp_extractor import (
                                           extrair_linha_nome_razao_social_cnpj_cpf_data,
                                           extrair_destinatario,
                                           extrair_cnpj_cpf_destinatario,
-                                          extrair_data_emissao
+                                          extrair_data_emissao,
+                                          extrair_municipio_destinatario,
+                                          extrair_uf_destinatario
 )
 
 def main():
@@ -54,7 +56,9 @@ def main():
           'natureza_operacao': extrair_natureza_operacao(texto),
           'nome_destinatario': extrair_destinatario(linha_dados),
           'cnpj_cpf_destinatario': extrair_cnpj_cpf_destinatario(linha_dados),
-          'data_emissao_nfe': extrair_data_emissao(linha_dados)
+          'data_emissao_nfe': extrair_data_emissao(linha_dados),
+          'municipio_destinatario': extrair_municipio_destinatario(texto),
+          'uf_destinatario': extrair_uf_destinatario(texto)
         }
         
         resultados.append(dados)
@@ -69,6 +73,10 @@ def main():
         print(f"✔️ Nome do destinatário: {dados['nome_destinatario']}")
         print(f"✔️ CNPJ/CPF do destinatário: {dados['cnpj_cpf_destinatario']}")
         print(f"✔️ Data de emissão NF-e: {dados['data_emissao_nfe']}")
+        print(f"✔️ Municipio do destinatário: {dados['municipio_destinatario']}")
+        print(f"✔️ UF do destinatário: {dados['uf_destinatario']}")
+        
+        
         
         
     except Exception as e:
