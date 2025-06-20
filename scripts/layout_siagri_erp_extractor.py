@@ -33,3 +33,11 @@ def extrair_cnpj_da_chave(chave):
 	else:
 		print(f"Aviso: chave inválida para extrair CNPJ → {chave}")
 		return None
+
+def extrair_serie(chave):
+	if chave and len(chave) == 45:
+		serie_nf = chave[23:26] 
+		return serie_nf
+	else:
+		print(f"Aviso: chave inválida para extrair CNPJ → {chave}")
+		return None
