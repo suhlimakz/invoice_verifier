@@ -152,3 +152,13 @@ def extrair_destinatario(linha_dados):
 		return ' '.join(nome) if nome else None
 
 	return None
+
+def extrair_cnpj_cpf_destinatario(linha_dados):
+	if linha_dados:
+		partes = linha_dados.split()
+		for parte in partes:
+			if parte.count('.') == 2 and '-' in parte:
+				return parte
+			if parte.count('.') == 2 and '/' in parte and '-' in parte:
+				return parte
+	return None
