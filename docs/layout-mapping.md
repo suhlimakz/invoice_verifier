@@ -47,6 +47,17 @@ A DANFE analisada é composta por seções bem definidas, distribuídas em bloco
     - **Chave de Acesso:** 
       - Descritivo: `Chave de acesso da NF-e`
       - Formato: 44 caracteres agrupados em blocos de 4, separados por espaços (11 blocos).
+      - Composição: 
+        - **2 primeiros dígitos:** representam o código da Unidade Federativa (cUF), indicando o estado onde a empresa emissora está registrada;
+        - **4 dígitos seguintes (AAMM):** são o ano e o mês de emissão da nota fiscal;
+        - **Próximos 14 dígitos:** correspondem ao número do Cadastro Nacional de Pessoa Jurídica (CNPJ) da empresa emitente;
+        - **2 dígitos seguintes:**indicam o modelo da NF-e (mod), que geralmente é “55”;
+        - **3 dígitos subsequentes:** representam a série da nota fiscal, que identifica a sequência de emissão;
+        - **Próximos 9 dígitos:** correspondem ao nNF, ou seja, o número sequencial;
+        - **1 dígito seguinte:** indica o tipo de emissão do documento (tpEmis);
+        - **8 dígitos seguintes:** corresponde ao código numérico da chave de acesso (cNF);
+        - **Último dígito:** é o verificador (cDV), utilizado para garantir a integridade.
+      
     - **Consulta de Autenticidade:** Caixa delimitada.
     - **Natureza da Operação:** Campo textual padrão.
     - **Protocolo de Autorização:** Texto.
