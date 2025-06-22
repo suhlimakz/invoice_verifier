@@ -3,5 +3,6 @@ env/
 /data/notas_fiscais/*
 /data/excel/*.xlsx
 /output/*.xlsx
+/tests*
 *.todo
 __pycache__/
