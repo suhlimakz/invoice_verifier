@@ -305,18 +305,18 @@ def extrair_tabela_produtos(caminho_pdf):
 						padrao = re.compile(
 							r'^(?P<cod_item>\d{7})\s+'
 							r'(?P<descricao>.+?)\s+'
-							r'(?P<ncm>\d{4}\.\d{2}\.\d{2})\s+'
-							r'(?P<cst>\d{3})\s+'
+							# r'(?P<ncm>\d{4}\.\d{2}\.\d{2})\s+'
+							# r'(?P<cst>\d{3})\s+'
 							r'(?P<cfop>\d{4})\s+'
 							r'(?P<un>\w+)\s+'
 							r'(?P<qtde>[\d.,]+)\s+'
 							r'(?P<v_unit>[\d.,]+)\s+'
 							r'(?P<v_total>[\d.,]+)\s+'
-							r'(?P<bc_icms>[\d.,]+)\s+'
-							r'(?P<v_icms>[\d.,]+)\s+'
-							r'(?P<v_ipi>[\d.,]+)\s+'
-							r'(?P<al_icms>[\d.,]+)\s+'
-							r'(?P<al_ipi>[\d.,]+)'
+							# r'(?P<bc_icms>[\d.,]+)\s+'
+							# r'(?P<v_icms>[\d.,]+)\s+'
+							# r'(?P<v_ipi>[\d.,]+)\s+'
+							# r'(?P<al_icms>[\d.,]+)\s+'
+							# r'(?P<al_ipi>[\d.,]+)'
 						)
 
 						match = padrao.search(linha)
@@ -337,18 +337,18 @@ def extrair_tabela_produtos(caminho_pdf):
 								'Arquivo': os.path.basename(caminho_pdf),
 								'Cód. Item': match.group('cod_item'),
 								'Descrição': descricao_completa,
-								'NCM/SH': match.group('ncm'),
-								'CST': match.group('cst'),
+								# 'NCM/SH': match.group('ncm'),
+								# 'CST': match.group('cst'),
 								'CFOP': match.group('cfop'),
 								'UN': match.group('un'),
 								'QTDE': match.group('qtde'),
 								'V. UNIT': match.group('v_unit'),
 								'V. TOTAL': match.group('v_total'),
-								'BC ICMS': match.group('bc_icms'),
-								'V. ICMS': match.group('v_icms'),
-								'V. IPI': match.group('v_ipi'),
-								'AL ICMS': match.group('al_icms'),
-								'AL IPI': match.group('al_ipi')
+								# 'BC ICMS': match.group('bc_icms'),
+								# 'V. ICMS': match.group('v_icms'),
+								# 'V. IPI': match.group('v_ipi'),
+								# 'AL ICMS': match.group('al_icms'),
+								# 'AL IPI': match.group('al_ipi')
 							})
 
 							i = j
