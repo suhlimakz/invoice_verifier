@@ -1,3 +1,8 @@
+import os
+import pdfplumber
+import pandas as pd
+import re
+
 def extrair_chave_acesso(texto):
 
 	linhas = texto.splitlines()
@@ -176,8 +181,8 @@ def extrair_municipio_destinatario(texto):
 
 	for i, linha in enumerate(linhas):
 		linha_lower = linha.lower()
-  # O cabeçalho no PDF a palavra município está escrita errada, 
-  # se não encontrar o dado, verifique se a grafia foi corrigida. 
+  # 	⚠️ O cabeçalho no PDF a palavra município está escrita errada, 
+  # 	se não encontrar o dado, verifique se a grafia foi corrigida. 
 		if 'munícipio' in linha_lower and 'uf' in linha_lower:
 			if i + 1 < len(linhas):
 				linha_dados = linhas[i + 1].strip()
@@ -277,3 +282,80 @@ def extrair_valor_total_nota(texto):
 
 	print("❌ Cabeçalho com 'Valor total da Nota' não encontrado.")
 	return None
+
+def extrair_tabela_produtos(caminho_pdf):
+	produtos = []
+
+	with pdfplumber.open(caminho_pdf) as pdf:
+		for pagina in pdf.pages:
+			texto = pagina.extract_text()
+
+			if not texto:
+				continue
+
+			if 'DADOS DO PRODUTO / SERVIÇO' in texto and 'DADOS ADICIONAIS' in texto:
+				bloco = texto.split('DADOS DO PRODUTO / SERVIÇO')[1].split('DADOS ADICIONAIS')[0]
+				linhas = bloco.strip().split('\n')
+
+				i = 1
+				while i < len(linhas):
+					linha = linhas[i]
+
+					if re.match(r'^\d{7}', linha):
+						padrao = re.compile(
+							r'^(?P<cod_item>\d{7})\s+'
+							r'(?P<descricao>.+?)\s+'
+							r'(?P<ncm>\d{4}\.\d{2}\.\d{2})\s+'
+							r'(?P<cst>\d{3})\s+'
+							r'(?P<cfop>\d{4})\s+'
+							r'(?P<un>\w+)\s+'
+							r'(?P<qtde>[\d.,]+)\s+'
+							r'(?P<v_unit>[\d.,]+)\s+'
+							r'(?P<v_total>[\d.,]+)\s+'
+							r'(?P<bc_icms>[\d.,]+)\s+'
+							r'(?P<v_icms>[\d.,]+)\s+'
+							r'(?P<v_ipi>[\d.,]+)\s+'
+							r'(?P<al_icms>[\d.,]+)\s+'
+							r'(?P<al_ipi>[\d.,]+)'
+						)
+
+						match = padrao.search(linha)
+
+						if match:
+							desc_complemento = ''
+							j = i + 1
+							while j < len(linhas):
+								linha_seg = linhas[j]
+								if re.match(r'^\d{7}', linha_seg):
+									break
+								desc_complemento += ' ' + linha_seg.strip()
+								j += 1
+
+							descricao_completa = (match.group('descricao') + ' ' + desc_complemento).strip()
+
+							produtos.append({
+								'Arquivo': os.path.basename(caminho_pdf),
+								'Cód. Item': match.group('cod_item'),
+								'Descrição': descricao_completa,
+								'NCM/SH': match.group('ncm'),
+								'CST': match.group('cst'),
+								'CFOP': match.group('cfop'),
+								'UN': match.group('un'),
+								'QTDE': match.group('qtde'),
+								'V. UNIT': match.group('v_unit'),
+								'V. TOTAL': match.group('v_total'),
+								'BC ICMS': match.group('bc_icms'),
+								'V. ICMS': match.group('v_icms'),
+								'V. IPI': match.group('v_ipi'),
+								'AL ICMS': match.group('al_icms'),
+								'AL IPI': match.group('al_ipi')
+							})
+
+							i = j
+							continue
+						else:
+							print(f"⚠️ Linha não casou com o padrão: {linha}")
+
+					i += 1
+
+	return pd.DataFrame(produtos)
